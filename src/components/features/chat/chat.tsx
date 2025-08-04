@@ -22,6 +22,52 @@ import { SiMedium } from 'react-icons/si';
 import { GithubButton } from '../../ui/github-button';
 import HelperBoost from './HelperBoost';
 
+/**
+ * Convert technical error messages to user-friendly messages
+ * This provides a fallback if the backend error handler doesn't catch everything
+ */
+function getUserFriendlyErrorMessage(message: string): string {
+  if (!message) return 'Something went wrong. Please try again.';
+  
+  const lowerMessage = message.toLowerCase();
+  
+  // If the message is already user-friendly (from our backend), use it as-is
+  if (lowerMessage.includes('temporarily unavailable') || 
+      lowerMessage.includes('contact form') ||
+      lowerMessage.includes('try again later') ||
+      lowerMessage.includes('please wait') ||
+      lowerMessage.includes('ai twin takes a power nap') ||
+      lowerMessage.includes('experiencing high demand')) {
+    return message;
+  }
+  
+  // Handle common technical error patterns that might slip through
+  if (lowerMessage.includes('failed to fetch') || 
+      lowerMessage.includes('network error') ||
+      lowerMessage.includes('connection')) {
+    return 'I\'m having trouble connecting. Please check your internet connection and try again.';
+  }
+  
+  if (lowerMessage.includes('timeout')) {
+    return 'The request is taking too long. Please try again.';
+  }
+  
+  if (lowerMessage.includes('400') || lowerMessage.includes('bad request')) {
+    return 'There was an issue with your message. Please try rephrasing your question.';
+  }
+  
+  if (lowerMessage.includes('500') || lowerMessage.includes('server')) {
+    return 'I\'m experiencing technical difficulties. Please try again in a few minutes.';
+  }
+  
+  // For very long technical messages, truncate them
+  if (message.length > 150) {
+    return 'I encountered a technical issue. Please try again or contact me directly if the problem persists.';
+  }
+  
+  return message;
+}
+
 // ClientOnly component for client-side rendering
 interface ClientOnlyProps {
   children: React.ReactNode;
@@ -180,8 +226,25 @@ const Chat = () => {
           console.error('Failed to continue video playback after error:', playError);
         });
       }
-      console.error('Chat error:', error.message, error.cause);
-      toast.error(`Error: ${error.message}`);
+      
+      // Enhanced error logging
+      console.error('Chat error details:', {
+        message: error.message,
+        cause: error.cause,
+        type: typeof error,
+        error: error,
+        timestamp: new Date().toISOString(),
+      });
+      
+      // Display user-friendly error message
+      const userMessage = getUserFriendlyErrorMessage(error.message);
+      toast.error(userMessage, {
+        duration: 6000, // Show longer for error messages
+        action: userMessage.includes('contact form') ? {
+          label: 'Contact',
+          onClick: () => window.location.href = '#contact'
+        } : undefined,
+      });
     },
     onToolCall: (tool) => {
       const toolName = tool.toolCall.toolName;
