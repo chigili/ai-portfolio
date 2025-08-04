@@ -1,15 +1,15 @@
-// src/components/chat/tool-renderer.tsx
-import { Contact } from '../contact';
-import AllProjects from '../projects/AllProjects';
-import Skills from '../skills';
-import GamingExperience from '../gaming-experience';
-import DataViz from '../data-viz';
-import AboutStory from '../about-story';
+// src/components/features/chat/tool-renderer.tsx
+import { Contact } from '../portfolio/contact';
+import AllProjects from '../portfolio/projects/AllProjects';
+import Skills from '../portfolio/skills';
+import GamingExperience from '../portfolio/gaming-experience';
+import DataViz from '../portfolio/data-viz';
+import AboutStory from '../portfolio/about-story';
 
 interface ToolInvocation {
   toolCallId: string;
   toolName: string;
-  result?: any;
+  result?: any; // Using any for flexibility with tool results
 }
 
 interface ToolRendererProps {

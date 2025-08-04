@@ -126,7 +126,7 @@ export const Compare = ({
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
       if (!autoplay) {
-        handleStart(e.touches[0].clientX);
+        handleStart(e.touches[0]?.clientX || 0);
       }
     },
     [handleStart, autoplay]
@@ -141,7 +141,7 @@ export const Compare = ({
   const handleTouchMove = useCallback(
     (e: React.TouchEvent) => {
       if (!autoplay) {
-        handleMove(e.touches[0].clientX);
+        handleMove(e.touches[0]?.clientX || 0);
       }
     },
     [handleMove, autoplay]

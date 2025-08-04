@@ -1,13 +1,13 @@
 import { anthropic } from '@ai-sdk/anthropic';
 import { streamText } from 'ai';
 import { SYSTEM_PROMPT } from './prompt';
-import { getContact } from './tools/getContact';
-import { getProjects } from './tools/getProjects';
-import { getResume } from './tools/getResume';
-import { getSkills } from './tools/getSkills';
-import { getGamingExperience } from './tools/getGamingExperience';
-import { getDataViz } from './tools/getDataViz';
-import { getAbout } from './tools/getAbout';
+import { getContact } from '@/services/portfolio/tools/getContact';
+import { getProjects } from '@/services/portfolio/tools/getProjects';
+import { getResume } from '@/services/portfolio/tools/getResume';
+import { getSkills } from '@/services/portfolio/tools/getSkills';
+import { getGamingExperience } from '@/services/portfolio/tools/getGamingExperience';
+import { getDataViz } from '@/services/portfolio/tools/getDataViz';
+import { getAbout } from '@/services/portfolio/tools/getAbout';
 
 export const maxDuration = 30;
 // Disable static generation and caching for chat API

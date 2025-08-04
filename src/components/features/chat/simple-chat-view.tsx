@@ -40,17 +40,19 @@ export function SimplifiedChatView({
   const toolInvocations =
     message.parts
       ?.filter(
-        (part) =>
+        (part): part is Extract<typeof part, { type: 'tool-invocation' }> =>
           part.type === 'tool-invocation' &&
           part.toolInvocation?.state === 'result'
       )
-      .map((part) =>
-        part.type === 'tool-invocation' ? part.toolInvocation : null
-      )
-      .filter(Boolean) || [];
+      .map((part) => part.toolInvocation)
+      .filter((inv): inv is NonNullable<typeof inv> => inv !== null) || [];
 
-  // Only display the first tool (if any)
-  const currentTool = toolInvocations.length > 0 ? [toolInvocations[0]] : [];
+  // Only display the first tool (if any) - convert to ToolRenderer format
+  const currentTool = toolInvocations.length > 0 ? [{
+    toolCallId: toolInvocations[0]?.toolCallId || '',
+    toolName: toolInvocations[0]?.toolName || '',
+    result: undefined // ToolRenderer doesn't use result field
+  }] : [];
 
   const hasTextContent = message.content.trim().length > 0;
   const hasTools = currentTool.length > 0;

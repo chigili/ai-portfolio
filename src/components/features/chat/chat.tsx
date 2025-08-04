@@ -5,25 +5,29 @@ import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
+// import { motionConfig } from '@/lib';
 
 // Component imports
-import ChatBottombar from '@/components/chat/chat-bottombar';
-import ChatLanding from '@/components/chat/chat-landing';
-import ChatMessageContent from '@/components/chat/chat-message-content';
-import { SimplifiedChatView } from '@/components/chat/simple-chat-view';
+import ChatBottombar from './chat-bottombar';
+import ChatLanding from './chat-landing';
+import ChatMessageContent from './chat-message-content';
+import { SimplifiedChatView } from './simple-chat-view';
 import {
   ChatBubble,
   ChatBubbleMessage,
 } from '@/components/ui/chat/chat-bubble';
-import WelcomeModal from '@/components/welcome-modal';
+import WelcomeModal from '../../shared/welcome-modal';
 import { Info } from 'lucide-react';
 import { SiMedium } from 'react-icons/si';
-import { GithubButton } from '../ui/github-button';
+import { GithubButton } from '../../ui/github-button';
 import HelperBoost from './HelperBoost';
 
 // ClientOnly component for client-side rendering
-//@ts-ignore
-const ClientOnly = ({ children }) => {
+interface ClientOnlyProps {
+  children: React.ReactNode;
+}
+
+const ClientOnly: React.FC<ClientOnlyProps> = ({ children }) => {
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
@@ -37,10 +41,16 @@ const ClientOnly = ({ children }) => {
   return <>{children}</>;
 };
 
-// Define Avatar component props interface
+/**
+ * Props for the Avatar component
+ * @interface AvatarProps
+ */
 interface AvatarProps {
+  /** Whether a tool is currently active/executing */
   hasActiveTool: boolean;
+  /** Reference to the video element for avatar animation */
   videoRef: React.RefObject<HTMLVideoElement | null>;
+  /** Whether the AI is currently speaking/responding */
   isTalking: boolean;
 }
 
@@ -57,16 +67,14 @@ const Avatar = dynamic<AvatarProps>(
 
         // UserAgent-based check
         const isIOSByUA =
-          //@ts-ignore
-          /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+          /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
 
         // Platform-based check
         const isIOSByPlatform = /iPad|iPhone|iPod/.test(platform);
 
         // iPad Pro check
         const isIPadOS =
-          //@ts-ignore
-          platform === 'MacIntel' && maxTouchPoints > 1 && !window.MSStream;
+          platform === 'MacIntel' && maxTouchPoints > 1 && !(window as any).MSStream;
 
         // Safari check
         const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
@@ -107,15 +115,20 @@ const Avatar = dynamic<AvatarProps>(
   { ssr: false }
 );
 
-const MOTION_CONFIG = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: 20 },
-  transition: {
-    duration: 0.3,
-  },
-};
+// Use centralized motion config
+// Removed local MOTION_CONFIG - now using imported motionConfig
 
+/**
+ * Main Chat component providing an interactive AI assistant interface.
+ * Features include:
+ * - Dynamic avatar with video/image fallback
+ * - Real-time chat messaging
+ * - Tool execution and rendering
+ * - Responsive design with mobile support
+ * - Auto-submit functionality for query parameters
+ * 
+ * @returns {JSX.Element} The complete chat interface
+ */
 const Chat = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const searchParams = useSearchParams();
@@ -152,14 +165,20 @@ const Chat = () => {
       setLoadingSubmit(false);
       setIsTalking(false);
       if (videoRef.current) {
-        videoRef.current.pause();
+        // Keep video playing/looping instead of pausing
+        videoRef.current.play().catch((error) => {
+          console.error('Failed to continue video playback:', error);
+        });
       }
     },
     onError: (error) => {
       setLoadingSubmit(false);
       setIsTalking(false);
       if (videoRef.current) {
-        videoRef.current.pause();
+        // Keep video playing/looping even on errors
+        videoRef.current.play().catch((playError) => {
+          console.error('Failed to continue video playback after error:', playError);
+        });
       }
       console.error('Chat error:', error.message, error.cause);
       toast.error(`Error: ${error.message}`);
@@ -212,8 +231,7 @@ const Chat = () => {
       )
   );
 
-  //@ts-ignore
-  const submitQuery = (query) => {
+  const submitQuery = (query: string) => {
     if (!query.trim() || isToolInProgress) return;
     setLoadingSubmit(true);
     append({
@@ -224,13 +242,37 @@ const Chat = () => {
 
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.loop = true;
-      videoRef.current.muted = true;
-      videoRef.current.playsInline = true;
+      const video = videoRef.current;
+      video.loop = true;
+      video.muted = true;
+      video.playsInline = true;
+      
+      // Set up event listeners to ensure continuous looping
+      const handleEnded = () => {
+        video.play().catch((error) => {
+          console.error('Failed to restart video loop:', error);
+        });
+      };
+      
+      const handleLoadedData = () => {
+        video.play().catch((error) => {
+          console.error('Failed to auto-play video after load:', error);
+        });
+      };
+      
+      video.addEventListener('ended', handleEnded);
+      video.addEventListener('loadeddata', handleLoadedData);
+      
       // Auto-play the video
-      videoRef.current.play().catch((error) => {
+      video.play().catch((error) => {
         console.error('Failed to auto-play video:', error);
       });
+      
+      // Cleanup event listeners
+      return () => {
+        video.removeEventListener('ended', handleEnded);
+        video.removeEventListener('loadeddata', handleLoadedData);
+      };
     }
 
     if (initialQuery && !autoSubmitted) {
@@ -238,6 +280,9 @@ const Chat = () => {
       setInput('');
       submitQuery(initialQuery);
     }
+    
+    // Return empty cleanup if no video ref
+    return () => {};
   }, [initialQuery, autoSubmitted]);
 
   useEffect(() => {
@@ -249,8 +294,7 @@ const Chat = () => {
     }
   }, [isTalking]);
 
-  //@ts-ignore
-  const onSubmit = (e) => {
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!input.trim() || isToolInProgress) return;
     submitQuery(input);
@@ -321,7 +365,9 @@ const Chat = () => {
           <AnimatePresence>
             {latestUserMessage && !currentAIMessage && (
               <motion.div
-                {...MOTION_CONFIG}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 className="mx-auto flex max-w-3xl px-4"
               >
                 <ChatBubble variant="sent">
@@ -352,7 +398,9 @@ const Chat = () => {
               <motion.div
                 key="landing"
                 className="flex min-h-full items-center justify-center"
-                {...MOTION_CONFIG}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
               >
                 <ChatLanding submitQuery={submitQuery} />
               </motion.div>
@@ -369,7 +417,9 @@ const Chat = () => {
               loadingSubmit && (
                 <motion.div
                   key="loading"
-                  {...MOTION_CONFIG}
+                  initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                   className="px-4 pt-18"
                 >
                   <ChatBubble variant="received">
@@ -384,7 +434,7 @@ const Chat = () => {
         {/* Fixed Bottom Bar */}
         <div className="sticky bottom-0 bg-white px-2 pt-3 md:px-0 md:pb-4">
           <div className="relative flex flex-col items-center gap-3">
-            <HelperBoost submitQuery={submitQuery} setInput={setInput} />
+            <HelperBoost submitQuery={submitQuery} />
             <ChatBottombar
               input={input}
               handleInputChange={handleInputChange}

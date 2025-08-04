@@ -1,10 +1,11 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Badge } from './ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Badge } from '../../ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Building, Calendar, MapPin, TrendingUp, DollarSign, Zap, Target, Database } from 'lucide-react';
 import Image from 'next/image';
+// import { getMetricColor, slideUpVariants, createStaggerVariants, smoothTransition } from '@/lib';
 
 // Live status indicator component
 const LiveIndicator = () => (
@@ -116,7 +117,7 @@ export default function GamingExperience({ data }: GamingExperienceProps) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.6 }}
         className="text-center"
       >
         <h2 className="text-3xl font-bold tracking-tighter">Gaming Industry Experience</h2>
@@ -125,13 +126,18 @@ export default function GamingExperience({ data }: GamingExperienceProps) {
         </p>
       </motion.div>
 
-      <div className="space-y-6">
-        {experienceData && experienceData.length > 0 ? experienceData.map((role, index) => (
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ staggerChildren: 0.1 }}
+        className="space-y-6"
+      >
+        {experienceData && experienceData.length > 0 ? experienceData.map((role) => (
           <motion.div
             key={role.title}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
             <Card className="border-2 hover:border-primary/50 transition-colors">
               <CardHeader>
@@ -226,7 +232,7 @@ export default function GamingExperience({ data }: GamingExperienceProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {Object.entries(role.impactMetrics).map(([metric, value], index) => {
                         // Icon mapping for different metrics
-                        const iconMap: { [key: string]: any } = {
+                        const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
                           "Cost Optimization": DollarSign,
                           "Revenue Growth": TrendingUp,
                           "Performance Improvement": Zap,
@@ -234,14 +240,17 @@ export default function GamingExperience({ data }: GamingExperienceProps) {
                         };
                         const Icon = iconMap[metric] || Target;
                         
-                        // Color mapping for variety
-                        const colorMap: { [key: string]: string } = {
-                          "Cost Optimization": "text-green-600 bg-green-50 dark:bg-green-950/20 border-green-200",
-                          "Revenue Growth": "text-blue-600 bg-blue-50 dark:bg-blue-950/20 border-blue-200",
-                          "Performance Improvement": "text-purple-600 bg-purple-50 dark:bg-purple-950/20 border-purple-200",
-                          "Infrastructure": "text-orange-600 bg-orange-50 dark:bg-orange-950/20 border-orange-200"
+                        // Get color class inline
+                        const getMetricColor = (metric: string) => {
+                          const colors: { [key: string]: string } = {
+                            "Cost Optimization": "text-green-600 bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800",
+                            "Revenue Growth": "text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800",
+                            "Performance Improvement": "text-purple-600 bg-purple-50 border-purple-200 dark:bg-purple-950 dark:border-purple-800",
+                            "Infrastructure": "text-orange-600 bg-orange-50 border-orange-200 dark:bg-orange-950 dark:border-orange-800"
+                          };
+                          return colors[metric] || "text-gray-600 bg-gray-50 border-gray-200 dark:bg-gray-950 dark:border-gray-800";
                         };
-                        const colorClass = colorMap[metric] || "text-gray-600 bg-gray-50 dark:bg-gray-950/20 border-gray-200";
+                        const colorClass = getMetricColor(metric);
                         
                         return (
                           <motion.div
@@ -296,7 +305,7 @@ export default function GamingExperience({ data }: GamingExperienceProps) {
             <p>No gaming experience data available.</p>
           </div>
         )}
-      </div>
+      </motion.div>
 
     </div>
   );

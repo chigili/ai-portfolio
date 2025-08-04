@@ -35,9 +35,10 @@ const Skills = () => {
       icon: <Cpu className="h-5 w-5" />,
       skills: [
         'Scikit-learn & PyTorch',
-        'Logistic Regression (78.4% churn accuracy)',
+        'Supervised Learning',
+        'Deep Learning',
+        'Neural Networks',
         'K-Means Clustering',
-        'BERT/Transformers',
         'Prompt Engineering (Expert)',
         'AI Agents & ChatGPT/Claude Integration'
       ],

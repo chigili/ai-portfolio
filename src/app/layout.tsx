@@ -2,12 +2,12 @@ import { Analytics } from "@vercel/analytics/react"
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@/components/shared/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 // Import development utilities only in development
-let DevUtils: any = null;
+let DevUtils: React.ComponentType<unknown> | null = null;
 if (process.env.NODE_ENV === 'development') {
   try {
     DevUtils = require("@/lib/dev-utils").DevUtils;

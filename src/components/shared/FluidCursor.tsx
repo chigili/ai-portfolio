@@ -25,6 +25,8 @@ const FluidCursor = () => {
         clearTimeout(timer);
       };
     }
+    // Return empty cleanup function if canvas is not available
+    return () => {};
   }, []);
 
   return (

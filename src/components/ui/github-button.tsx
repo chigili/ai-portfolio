@@ -101,7 +101,18 @@ function GithubButton({
   useEffect(() => {
     fetch('/api/github-stars')
       .then((res) => res.json())
-      .then((data) => setTargetStars(data.stars));
+      .then((result) => {
+        if (result.success && result.data && typeof result.data.stars === 'number') {
+          setTargetStars(result.data.stars);
+        } else {
+          console.warn('Invalid GitHub stars API response:', result);
+          setTargetStars(1); // Fallback value
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching GitHub stars:', error);
+        setTargetStars(1); // Fallback value
+      });
   }, []);
 
   const startAnimation = useCallback(() => {

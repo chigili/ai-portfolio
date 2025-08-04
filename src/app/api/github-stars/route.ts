@@ -1,33 +1,46 @@
+import { NextResponse } from 'next/server';
+
 // Disable static generation for this route to prevent caching issues
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export async function GET(req: Request) {
-  const res = await fetch('https://api.github.com/repos/toukoum/portfolio', {
-    headers: {
-      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-    },
-    // Disable Next.js fetch caching
-    cache: 'no-store',
-  });
+// Use environment variable or fallback to hardcoded repo
+const REPO_URL = 'https://api.github.com/repos/chigili/ai-portfolio';
 
-  if (!res.ok) {
-    return new Response('Failed to fetch stars', { 
-      status: res.status,
+export const GET = async () => {
+  try {
+    const response = await fetch(REPO_URL, {
       headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-      }
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'ai-portfolio-app',
+        ...(process.env.GITHUB_TOKEN && {
+          'Authorization': `token ${process.env.GITHUB_TOKEN}`
+        })
+      },
+      next: { revalidate: 300 } // Cache for 5 minutes
+    });
+
+    if (!response.ok) {
+      throw new Error(`GitHub API responded with ${response.status}`);
+    }
+
+    const data = await response.json();
+    const stars = data.stargazers_count || 1;
+    
+    return NextResponse.json({
+      success: true,
+      data: { stars },
+      message: 'Stars retrieved successfully',
+      status: 200
+    });
+  } catch (error) {
+    console.error('GitHub API error:', error);
+    // Return a fallback value instead of failing completely
+    return NextResponse.json({
+      success: true,
+      data: { stars: 1 },
+      message: 'Using fallback star count',
+      status: 200
     });
   }
-
-  const data = await res.json();
-  return Response.json({ stars: data.stargazers_count }, {
-    headers: {
-      'Cache-Control': 'no-cache, no-store, must-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0',
-    }
-  });
-}
+};
