@@ -76,42 +76,40 @@ export const QuestionGrid = () => {
             />
           ))}
           
-          {/* Contact + Menu buttons grouped together */}
-          <div className="flex gap-2">
-            {contactQuestion && (
-              <QuestionButton
-                onClick={() => handleQuestionClick('Contact')}
-                icon={contactQuestion.icon}
-                color={contactQuestion.color}
-                label="Contact"
-                variant="home"
-                className="flex-1"
-              />
-            )}
-            
-            <TooltipProvider>
-              <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={openDrawer}
-                    variant="outline"
-                    className="border-border hover:bg-border/30 aspect-square w-16 cursor-pointer rounded-2xl border bg-white/30 py-8 shadow-none backdrop-blur-lg active:scale-95 md:p-10 md:w-20"
-                  >
-                    <div className="flex h-full flex-col items-center justify-center gap-1 text-gray-700">
-                      <CircleEllipsis 
-                        size={22} 
-                        strokeWidth={2} 
-                        color={menuQuestion?.color || '#6B7280'} 
-                      />
-                    </div>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <AnimatedChevron />
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+          {/* Contact button - consistent with other tiles */}
+          {contactQuestion && (
+            <QuestionButton
+              onClick={() => handleQuestionClick('Contact')}
+              icon={contactQuestion.icon}
+              color={contactQuestion.color}
+              label="Contact"
+              variant="home"
+            />
+          )}
+          
+          {/* Menu ellipsis button - styled like other tiles */}
+          <TooltipProvider>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={openDrawer}
+                  variant="outline"
+                  className="border-border hover:bg-border/30 aspect-square w-full cursor-pointer rounded-2xl border bg-white/30 py-8 shadow-none backdrop-blur-lg active:scale-95 md:p-10"
+                >
+                  <div className="flex h-full flex-col items-center justify-center gap-1 text-gray-700">
+                    <CircleEllipsis 
+                      size={22} 
+                      strokeWidth={2} 
+                      color={menuQuestion?.color || '#6B7280'} 
+                    />
+                  </div>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <AnimatedChevron />
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
 
