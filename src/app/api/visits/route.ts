@@ -34,8 +34,8 @@ export const POST = async (request: NextRequest) => {
     }
     
     const lastVisit = global.visitTracker.get(clientIP) || 0;
-    const hourInMs = 60 * 60 * 1000;
-    const shouldIncrement = !isBot && (now - lastVisit > hourInMs);
+    const cooldownInMs = 30 * 60 * 1000; // 30 minutes instead of 1 hour for better responsiveness
+    const shouldIncrement = !isBot && (now - lastVisit > cooldownInMs);
     
     let incremented = false;
     if (shouldIncrement) {
@@ -51,7 +51,7 @@ export const POST = async (request: NextRequest) => {
         incremented,
         clientIP: process.env.NODE_ENV === 'development' ? (request as any).ip : undefined
       },
-      message: `Visit ${incremented ? 'recorded' : 'detected as bot'}`,
+      message: `Visit ${incremented ? 'recorded' : (isBot ? 'detected as bot' : 'cooldown active')}`,
       status: 200
     });
   } catch (error) {

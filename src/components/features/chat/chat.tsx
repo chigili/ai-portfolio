@@ -101,63 +101,96 @@ interface AvatarProps {
 }
 
 // Dynamic import of Avatar component
-const Avatar = dynamic<AvatarProps>(
-  () =>
-    Promise.resolve(({ hasActiveTool, videoRef, isTalking }: AvatarProps) => {
-      // This function will only execute on the client
-      const isIOS = () => {
-        // Multiple detection methods
-        const userAgent = window.navigator.userAgent;
-        const platform = window.navigator.platform;
-        const maxTouchPoints = window.navigator.maxTouchPoints || 0;
+// Avatar component definition outside of dynamic import
+const AvatarComponent = ({ hasActiveTool, videoRef, isTalking }: AvatarProps) => {
+  const [showStaticImage, setShowStaticImage] = React.useState(false);
+  const [videoLoaded, setVideoLoaded] = React.useState(false);
+  
+  const handleVideoError = () => {
+    console.log('Video failed to load, falling back to static image');
+    setShowStaticImage(true);
+  };
 
-        // UserAgent-based check
-        const isIOSByUA =
-          /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
+  const handleVideoLoaded = () => {
+    setVideoLoaded(true);
+  };
 
-        // Platform-based check
-        const isIOSByPlatform = /iPad|iPhone|iPod/.test(platform);
+  // Check if video should be disabled based on device capabilities
+  React.useEffect(() => {
+    const checkVideoSupport = () => {
+      // Force static image on very old mobile browsers or low-end devices
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      const isOldAndroid = /android [1-4]\./.test(userAgent);
+      const isOldiOS = /os [1-9]_/.test(userAgent);
+      
+      if (isOldAndroid || isOldiOS) {
+        setShowStaticImage(true);
+      }
+    };
 
-        // iPad Pro check
-        const isIPadOS =
-          platform === 'MacIntel' && maxTouchPoints > 1 && !(window as any).MSStream;
+    // Delay to prevent hydration mismatch
+    const timer = setTimeout(checkVideoSupport, 100);
+    return () => clearTimeout(timer);
+  }, []); 
 
-        // Safari check
-        const isSafari = /Safari/.test(userAgent) && !/Chrome/.test(userAgent);
-
-        return isIOSByUA || isIOSByPlatform || isIPadOS || isSafari;
-      };
-
-      // Conditional rendering based on detection
-      return (
-        <div
-          className={`flex items-center justify-center rounded-full transition-all duration-300 ${hasActiveTool ? 'h-20 w-20' : 'h-28 w-28'}`}
-        >
-          <div
-            className="relative cursor-pointer"
-            onClick={() => (window.location.href = '/')}
-          >
-            {isIOS() ? (
+  return (
+    <div
+      className={`flex items-center justify-center rounded-full transition-all duration-300 ${hasActiveTool ? 'h-12 w-12 sm:h-16 sm:w-16' : 'h-16 w-16 sm:h-20 sm:w-20'}`}
+    >
+      <div
+        className="relative cursor-pointer overflow-hidden rounded-full"
+        onClick={() => {
+          // Try to start video playback on user interaction for mobile devices
+          if (videoRef.current && !showStaticImage) {
+            videoRef.current.play().catch((error) => {
+              console.log('Click-initiated video play failed:', error);
+            });
+          }
+          window.location.href = '/';
+        }}
+      >
+        {showStaticImage ? (
+          <img
+            src="/avatar_hi.jpg"
+            alt="Sai Avatar"
+            className="h-full w-full object-cover rounded-full shadow-lg"
+          />
+        ) : (
+          <>
+            {!videoLoaded && (
               <img
                 src="/avatar_hi.jpg"
                 alt="Sai Avatar"
-                className="h-full w-full object-cover rounded-full shadow-lg"
+                className="absolute inset-0 h-full w-full object-cover rounded-full shadow-lg"
               />
-            ) : (
-              <video
-                ref={videoRef}
-                className="h-full w-full object-cover rounded-full shadow-lg border-2 border-white/20"
-                muted
-                playsInline
-                loop
-              >
-                <source src="/avatar_hi_video.mov" type="video/mp4" />
-              </video>
             )}
-          </div>
-        </div>
-      );
-    }),
+            <video
+              ref={videoRef}
+              className="h-full w-full object-cover rounded-full shadow-lg border-2 border-white/20"
+              muted
+              playsInline
+              loop
+              autoPlay
+              preload="auto"
+              onError={handleVideoError}
+              onLoadedData={handleVideoLoaded}
+              onCanPlay={() => {
+                if (videoRef.current) {
+                  videoRef.current.play().catch(console.log);
+                }
+              }}
+            >
+              <source src="/avatar_hi_video.mov" type="video/mp4" />
+            </video>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const Avatar = dynamic<AvatarProps>(
+  () => Promise.resolve(AvatarComponent),
   { ssr: false }
 );
 
@@ -306,35 +339,54 @@ const Chat = () => {
   useEffect(() => {
     if (videoRef.current) {
       const video = videoRef.current;
-      video.loop = true;
+      
+      // Force video properties
       video.muted = true;
+      video.loop = true;
       video.playsInline = true;
+      video.autoplay = true;
       
-      // Set up event listeners to ensure continuous looping
-      const handleEnded = () => {
-        video.play().catch((error) => {
-          console.error('Failed to restart video loop:', error);
-        });
+      // Aggressive autoplay approach
+      const forcePlay = () => {
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log('Video autoplay successful');
+            })
+            .catch((error) => {
+              console.log('Autoplay prevented:', error);
+              // Try again with user interaction
+              document.addEventListener('click', () => {
+                video.play().catch(console.log);
+              }, { once: true });
+            });
+        }
       };
       
+      // Multiple event listeners to ensure playback
+      const handleCanPlay = () => forcePlay();
       const handleLoadedData = () => {
-        video.play().catch((error) => {
-          console.error('Failed to auto-play video after load:', error);
-        });
+        setTimeout(forcePlay, 50);
+      };
+      const handleEnded = () => {
+        video.currentTime = 0;
+        forcePlay();
       };
       
-      video.addEventListener('ended', handleEnded);
+      video.addEventListener('canplay', handleCanPlay);
       video.addEventListener('loadeddata', handleLoadedData);
+      video.addEventListener('ended', handleEnded);
       
-      // Auto-play the video
-      video.play().catch((error) => {
-        console.error('Failed to auto-play video:', error);
-      });
+      // Immediate play attempts
+      forcePlay();
+      setTimeout(forcePlay, 100);
+      setTimeout(forcePlay, 500);
       
-      // Cleanup event listeners
       return () => {
-        video.removeEventListener('ended', handleEnded);
+        video.removeEventListener('canplay', handleCanPlay);
         video.removeEventListener('loadeddata', handleLoadedData);
+        video.removeEventListener('ended', handleEnded);
       };
     }
 
@@ -377,8 +429,8 @@ const Chat = () => {
   const isEmptyState =
     !currentAIMessage && !latestUserMessage && !loadingSubmit;
 
-  // Calculate header height based on hasActiveTool
-  const headerHeight = hasActiveTool ? 100 : 180;
+  // Calculate header height based on hasActiveTool and screen size with better spacing
+  const headerHeight = hasActiveTool ? 100 : 130;
 
   return (
     <div className="relative h-screen overflow-hidden">
@@ -413,7 +465,7 @@ const Chat = () => {
         }}
       >
         <div
-          className={`transition-all duration-300 ease-in-out ${hasActiveTool ? 'pt-6 pb-0' : 'py-6'}`}
+          className={`transition-all duration-300 ease-in-out ${hasActiveTool ? 'pt-6 pb-2 sm:pt-8 sm:pb-4' : 'py-6 sm:py-8'}`}
         >
           <div className="flex justify-center">
             <ClientOnly>

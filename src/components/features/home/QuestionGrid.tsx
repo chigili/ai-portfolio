@@ -63,8 +63,8 @@ export const QuestionGrid = () => {
       </form>
 
       {/* Quick-question grid */}
-      <div className="mt-4 flex w-full max-w-4xl justify-center">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="mt-4 flex w-full max-w-5xl justify-center">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-6">
           {visibleQuestions.map((config) => (
             <QuestionButton
               key={config.key}
@@ -87,23 +87,19 @@ export const QuestionGrid = () => {
             />
           )}
           
-          {/* Menu ellipsis button - styled like other tiles */}
+          {/* Menu ellipsis button - using QuestionButton component */}
           <TooltipProvider>
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>
-                <Button
-                  onClick={openDrawer}
-                  variant="outline"
-                  className="border-border hover:bg-border/30 aspect-square w-full cursor-pointer rounded-2xl border bg-white/30 py-8 shadow-none backdrop-blur-lg active:scale-95 md:p-10"
-                >
-                  <div className="flex h-full flex-col items-center justify-center gap-1 text-gray-700">
-                    <CircleEllipsis 
-                      size={22} 
-                      strokeWidth={2} 
-                      color={menuQuestion?.color || '#6B7280'} 
-                    />
-                  </div>
-                </Button>
+                <div>
+                  <QuestionButton
+                    onClick={openDrawer}
+                    icon={CircleEllipsis}
+                    color={menuQuestion?.color || '#6B7280'}
+                    label=""
+                    variant="home"
+                  />
+                </div>
               </TooltipTrigger>
               <TooltipContent>
                 <AnimatedChevron />

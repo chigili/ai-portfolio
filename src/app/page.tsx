@@ -36,7 +36,7 @@ export default function Home() {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pb-10 md:pb-20" style={{ background: 'radial-gradient(circle at center, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.8) 100%)' }}>
       {/* Visit Counter - Top of page */}
-      <div className="absolute top-12 left-1/2 transform -translate-x-1/2 z-30 sm:top-4">
+      <div className="absolute top-14 left-1/2 transform -translate-x-1/2 z-30 sm:top-4">
         <VisitCounter className="scale-75 sm:scale-100" />
       </div>
 

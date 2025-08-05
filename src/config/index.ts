@@ -106,9 +106,9 @@ export const APP_CONFIG = {
     },
     profile: '/profile-sai.png',
     memojis: {
-      static: '/landing-memojis.png',
-      webm: '/final_memojis.webm',
-      mp4: '/final_memojis_ios.mp4',
+      static: '/avatar_hi.jpg',
+      webm: '/avatar_hi_video.mov',
+      mp4: '/avatar_hi_video.mov',
     },
   },
 } as const;

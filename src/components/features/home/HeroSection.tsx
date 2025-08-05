@@ -12,7 +12,7 @@ export const HeroSection = () => {
     <>
       {/* Header */}
       <motion.div
-        className="z-1 mt-24 mb-8 flex flex-col items-center text-center md:mt-4 md:mb-12"
+        className="z-1 mt-28 mb-8 flex flex-col items-center text-center md:mt-4 md:mb-12"
         variants={heroAnimationVariants.topElement}
         initial="hidden"
         animate="visible"

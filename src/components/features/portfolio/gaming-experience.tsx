@@ -9,7 +9,7 @@ import Image from 'next/image';
 
 // Live status indicator component
 const LiveIndicator = () => (
-  <motion.div 
+  <motion.div
     className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
     initial={{ opacity: 0, scale: 0.8 }}
     animate={{ opacity: 1, scale: 1 }}
@@ -33,7 +33,7 @@ const LiveIndicator = () => (
 
 const experience = [
   {
-    title: "Senior Data Engineer",
+    title: "Data Engineer",
     company: "Amazon Games",
     period: "April 2022 - Present",
     location: "Seattle, WA",
@@ -46,8 +46,8 @@ const experience = [
       "Creating ML models for player behavior prediction and churn analysis"
     ],
     keyProjects: [
-      "Player Churn Prediction (78.4% accuracy)",
-      "BERT-based Sentiment Analysis for game reviews",
+      "Real-time data ingestion for AAA titles from gaming platforms",
+      "Data warehouse optimization for cross-game analytics",
       "Multi-platform data integration pipelines",
       "AI automation for data lineage workflows"
     ],
@@ -74,10 +74,11 @@ const experience = [
     ],
     impactMetrics: {
       "Cost Optimization": "75%",
-      "Revenue Growth": "+30%", 
+      "Revenue Growth": "+30%",
       "Performance Improvement": "25%",
       "Infrastructure": "5 Centers"
-    }
+    },
+    technologies: ["Python", "SQL", "Tableau", "R", "Apache Spark", "Databricks", "A/B Testing"]
   },
   {
     title: "Analytics Consultant",
@@ -98,7 +99,7 @@ const experience = [
       "25% improvement in match closeness and reduced latency",
       "End-to-end analytics solutions for product lifecycle"
     ],
-    leadership: "Team management, cross-functional collaboration, stakeholder reporting"
+    technologies: ["Python", "SQL", "Tableau", "R", "SAS", "Google Analytics", "Excel", "Statistical Modeling"]
   }
 ];
 
@@ -126,7 +127,7 @@ export default function GamingExperience({ data }: GamingExperienceProps) {
         </p>
       </motion.div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ staggerChildren: 0.1 }}
@@ -141,8 +142,9 @@ export default function GamingExperience({ data }: GamingExperienceProps) {
           >
             <Card className="border-2 hover:border-primary/50 transition-colors">
               <CardHeader>
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
-                  <div className="flex items-center gap-3 mb-2 md:mb-0">
+                <div className="space-y-3 mb-4">
+                  {/* Company Info Row */}
+                  <div className="flex items-center gap-3">
                     <div className="flex-shrink-0">
                       <div className="w-12 h-12 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center overflow-hidden">
                         <Image
@@ -166,15 +168,17 @@ export default function GamingExperience({ data }: GamingExperienceProps) {
                       <Badge variant="secondary" className="text-sm font-medium">{role.company}</Badge>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      {role.period}
+
+                  {/* Period and Location Row - Properly Spaced */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Calendar className="h-4 w-4 flex-shrink-0" />
+                      <span className="whitespace-nowrap">{role.period}</span>
                       {role.period.includes('Present') && <LiveIndicator />}
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       <MapPin className="h-4 w-4" />
-                      {role.location}
+                      <span className="whitespace-nowrap">{role.location}</span>
                     </div>
                   </div>
                 </div>
@@ -199,11 +203,12 @@ export default function GamingExperience({ data }: GamingExperienceProps) {
                 {role.keyProjects && (
                   <div>
                     <h4 className="font-semibold mb-3">Key Projects</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className="space-y-2">
                       {role.keyProjects?.map((project, idx) => (
-                        <Badge key={idx} variant="outline" className="justify-start p-2 h-auto">
-                          {project}
-                        </Badge>
+                        <div key={idx} className="flex items-start bg-gray-50 dark:bg-gray-950/20 p-3 rounded-lg">
+                          <span className="text-gray-600 dark:text-gray-400 mr-2 mt-1 flex-shrink-0">✓</span>
+                          <span className="text-sm">{project}</span>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -214,8 +219,8 @@ export default function GamingExperience({ data }: GamingExperienceProps) {
                     <h4 className="font-semibold mb-3">Key Achievements</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {role.keyAchievements?.map((achievement, idx) => (
-                        <div key={idx} className="flex items-start bg-green-50 dark:bg-green-950/20 p-3 rounded-lg">
-                          <span className="text-green-600 mr-2 mt-1">✓</span>
+                        <div key={idx} className="flex items-start bg-gray-50 dark:bg-gray-950/20 p-3 rounded-lg">
+                          <span className="text-gray-600 dark:text-gray-400 mr-2 mt-1">✓</span>
                           <span className="text-sm">{achievement}</span>
                         </div>
                       ))}
@@ -226,7 +231,7 @@ export default function GamingExperience({ data }: GamingExperienceProps) {
                 {role.impactMetrics && (
                   <div>
                     <h4 className="font-semibold mb-4 flex items-center gap-2">
-                      <Target className="h-4 w-4 text-green-600" />
+                      <Target className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                       Impact Metrics
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -239,19 +244,10 @@ export default function GamingExperience({ data }: GamingExperienceProps) {
                           "Infrastructure": Database
                         };
                         const Icon = iconMap[metric] || Target;
-                        
-                        // Get color class inline
-                        const getMetricColor = (metric: string) => {
-                          const colors: { [key: string]: string } = {
-                            "Cost Optimization": "text-green-600 bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800",
-                            "Revenue Growth": "text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800",
-                            "Performance Improvement": "text-purple-600 bg-purple-50 border-purple-200 dark:bg-purple-950 dark:border-purple-800",
-                            "Infrastructure": "text-orange-600 bg-orange-50 border-orange-200 dark:bg-orange-950 dark:border-orange-800"
-                          };
-                          return colors[metric] || "text-gray-600 bg-gray-50 border-gray-200 dark:bg-gray-950 dark:border-gray-800";
-                        };
-                        const colorClass = getMetricColor(metric);
-                        
+
+                        // Use consistent neutral styling for all metrics
+                        const colorClass = "text-gray-600 bg-gray-50 border-gray-200 dark:bg-gray-950 dark:border-gray-800 dark:text-gray-300";
+
                         return (
                           <motion.div
                             key={metric}
@@ -261,12 +257,12 @@ export default function GamingExperience({ data }: GamingExperienceProps) {
                             className={`flex items-center gap-4 p-4 rounded-xl border-2 ${colorClass} hover:scale-105 transition-transform duration-200`}
                           >
                             <div className="flex-shrink-0">
-                              <div className={`p-3 rounded-lg ${colorClass.split(' ')[0]} ${colorClass.split(' ')[1]}`}>
-                                <Icon className="h-6 w-6" />
+                              <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-800">
+                                <Icon className="h-6 w-6 text-gray-600 dark:text-gray-400" />
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className={`text-2xl font-bold ${colorClass.split(' ')[0]}`}>
+                              <div className="text-2xl font-bold text-gray-800 dark:text-gray-200">
                                 {value}
                               </div>
                               <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-1">
@@ -277,13 +273,6 @@ export default function GamingExperience({ data }: GamingExperienceProps) {
                         );
                       })}
                     </div>
-                  </div>
-                )}
-
-                {role.leadership && (
-                  <div>
-                    <h4 className="font-semibold mb-3">Leadership & Collaboration</h4>
-                    <p className="text-sm text-muted-foreground">{role.leadership}</p>
                   </div>
                 )}
 

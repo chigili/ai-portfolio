@@ -23,7 +23,7 @@ export const QuestionButton = ({
   const baseClasses = "border-border hover:bg-border/30 cursor-pointer border bg-white/30 shadow-none backdrop-blur-lg active:scale-95";
   
   const variantClasses = {
-    home: "aspect-square w-full rounded-2xl py-8 md:p-10",
+    home: "aspect-square w-full rounded-xl py-10 px-6 sm:py-8 sm:px-4 md:py-10 md:px-6",
     chat: "h-auto min-w-[110px] flex-shrink-0 rounded-xl bg-white/80 px-4 py-3 backdrop-blur-sm transition-none"
   };
 
@@ -32,8 +32,8 @@ export const QuestionButton = ({
     chat: "flex items-center gap-3 text-gray-700"
   };
 
-  const iconSize = variant === 'home' ? 22 : 18;
-  const textClasses = variant === 'home' ? "text-xs font-medium sm:text-sm" : "text-sm font-medium";
+  const iconSize = variant === 'home' ? 18 : 18;
+  const textClasses = variant === 'home' ? "text-sm sm:text-base font-medium text-center" : "text-sm font-medium";
 
   return (
     <Button
