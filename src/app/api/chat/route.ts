@@ -8,6 +8,13 @@ import { getSkills } from '@/services/portfolio/tools/getSkills';
 import { getGamingExperience } from '@/services/portfolio/tools/getGamingExperience';
 import { getDataViz } from '@/services/portfolio/tools/getDataViz';
 import { getAbout } from '@/services/portfolio/tools/getAbout';
+import { 
+  InputSecurityAnalyzer, 
+  SecurityLogger, 
+  SuspiciousActivityType,
+  attackDetector 
+} from '@/lib/security';
+import { getClientIP, detectBot } from '@/lib/api';
 
 export const maxDuration = 30;
 // Disable static generation and caching for chat API
@@ -167,17 +174,96 @@ function handleHttpError(status: number, message?: string): string {
 }
 
 export async function POST(req: Request) {
+  const clientIP = getClientIP(req);
+  const userAgent = req.headers.get('user-agent') || '';
+  
   try {
     const { messages } = await req.json();
     console.log('[CHAT-API] Incoming messages:', messages);
 
+    // Security: Check if IP is blocked
+    if (attackDetector.isIPBlocked(clientIP)) {
+      SecurityLogger.log({
+        type: 'BLOCKED_REQUEST',
+        severity: 'HIGH',
+        message: 'Request from blocked IP',
+        clientIP,
+        userAgent,
+        endpoint: '/api/chat',
+      });
+      return new Response(
+        errorHandler('Access denied due to security policy.'),
+        { status: 403 }
+      );
+    }
+
+    // Security: Bot detection
+    if (detectBot(req)) {
+      attackDetector.reportSuspiciousActivity(
+        clientIP,
+        SuspiciousActivityType.SUSPICIOUS_USER_AGENT,
+        `Bot detected: ${userAgent}`
+      );
+      SecurityLogger.log({
+        type: 'BOT_DETECTED',
+        severity: 'MEDIUM',
+        message: 'Bot detected attempting to use chat',
+        clientIP,
+        userAgent,
+        endpoint: '/api/chat',
+      });
+    }
+
     // Validate messages
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       console.error('[CHAT-API] Invalid messages format:', messages);
+      attackDetector.reportSuspiciousActivity(
+        clientIP,
+        SuspiciousActivityType.MALFORMED_REQUEST,
+        'Invalid messages format'
+      );
       return new Response(
         errorHandler('Invalid message format. Please refresh and try again.'), 
         { status: 400 }
       );
+    }
+
+    // Security: Analyze user input for potential attacks
+    const lastUserMessage = messages[messages.length - 1];
+    if (lastUserMessage?.role === 'user' && lastUserMessage?.content) {
+      const analysisResult = InputSecurityAnalyzer.analyzeInput(lastUserMessage.content);
+      
+      if (!analysisResult.safe && analysisResult.riskScore >= 10) {
+        // High-risk input detected
+        const threatTypes = analysisResult.threats.map(t => t.type).join(', ');
+        
+        attackDetector.reportSuspiciousActivity(
+          clientIP,
+          threatTypes.includes('XSS') ? SuspiciousActivityType.XSS_ATTEMPT :
+          threatTypes.includes('SQL') ? SuspiciousActivityType.SQL_INJECTION_ATTEMPT :
+          SuspiciousActivityType.INVALID_INPUT,
+          `Threats: ${threatTypes}, Risk Score: ${analysisResult.riskScore}`
+        );
+
+        SecurityLogger.log({
+          type: 'MALICIOUS_INPUT_DETECTED',
+          severity: analysisResult.riskScore >= 10 ? 'CRITICAL' : 'HIGH',
+          message: `Potentially malicious input detected`,
+          clientIP,
+          userAgent,
+          endpoint: '/api/chat',
+          details: {
+            threats: analysisResult.threats,
+            riskScore: analysisResult.riskScore,
+            input: lastUserMessage.content.substring(0, 200), // Log first 200 chars
+          },
+        });
+
+        return new Response(
+          errorHandler('Your message contains content that cannot be processed for security reasons.'),
+          { status: 400 }
+        );
+      }
     }
 
     messages.unshift(SYSTEM_PROMPT);
@@ -209,11 +295,21 @@ export async function POST(req: Request) {
       tools,
     });
 
+    // Log successful chat interaction
+    SecurityLogger.log({
+      type: 'CHAT_REQUEST',
+      severity: 'LOW',
+      message: 'Chat request processed successfully',
+      clientIP,
+      userAgent,
+      endpoint: '/api/chat',
+    });
+
     return result.toDataStreamResponse({
       getErrorMessage: errorHandler,
     });
   } catch (err) {
-    // Enhanced error logging
+    // Enhanced error logging with security monitoring
     console.error('[CHAT-API] Global error occurred:', {
       error: err,
       errorType: typeof err,
@@ -222,6 +318,27 @@ export async function POST(req: Request) {
       stack: err instanceof Error ? err.stack : undefined,
       timestamp: new Date().toISOString(),
     });
+
+    // Security logging for errors
+    SecurityLogger.log({
+      type: 'API_ERROR',
+      severity: 'MEDIUM',
+      message: `Chat API error: ${err instanceof Error ? err.message : 'Unknown error'}`,
+      clientIP,
+      userAgent,
+      endpoint: '/api/chat',
+      details: {
+        errorType: typeof err,
+        errorName: err instanceof Error ? err.name : 'Unknown',
+      },
+    });
+
+    // Report multiple errors from same IP as suspicious
+    attackDetector.reportSuspiciousActivity(
+      clientIP,
+      SuspiciousActivityType.MULTIPLE_FAILED_REQUESTS,
+      `API error: ${err instanceof Error ? err.message : 'Unknown'}`
+    );
     
     const errorMessage = errorHandler(err);
     
