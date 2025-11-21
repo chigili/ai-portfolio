@@ -233,11 +233,13 @@ interface ProjectProps {
   links?: { name: string; url: string }[];
   dataEngineeringWork?: string[];
   analyticsWork?: string[];
+  keyFeatures?: string[];
 }
 
 const ProjectContent = ({ project }: { project: ProjectProps }) => {
-  // Find the matching project data
-  const projectData = PROJECT_CONTENT.find((p) => p.title === project.title);
+  // Find the matching project data from both professional and personal projects
+  const projectData = PROJECT_CONTENT.find((p) => p.title === project.title) ||
+                      PERSONAL_PROJECT_CONTENT.find((p) => p.title === project.title);
 
   if (!projectData) {
     return <div>Project details not available</div>;
@@ -302,8 +304,31 @@ const ProjectContent = ({ project }: { project: ProjectProps }) => {
         </div>
       )}
 
+      {/* Key Features */}
+      {'keyFeatures' in projectData && projectData.keyFeatures && projectData.keyFeatures.length > 0 && (
+        <div className="space-y-6">
+          <div className="px-6 mb-4 flex items-center gap-2">
+            <h3 className="text-sm tracking-wide text-neutral-500 dark:text-neutral-400">
+              Key Features
+            </h3>
+          </div>
+          <Separator className="my-4" />
+          <div className="space-y-3">
+            {projectData.keyFeatures.map((feature: string, index: number) => (
+              <div
+                key={index}
+                className="bg-[#F5F5F7] flex items-start gap-3 rounded-xl p-4 dark:bg-neutral-800"
+              >
+                <span className="text-purple-600 mt-1 text-sm">•</span>
+                <span className="font-light text-sm leading-relaxed">{feature}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Data Engineering Work */}
-      {projectData.dataEngineeringWork && projectData.dataEngineeringWork.length > 0 && (
+      {'dataEngineeringWork' in projectData && projectData.dataEngineeringWork && projectData.dataEngineeringWork.length > 0 && (
         <div className="space-y-6">
           <div className="px-6 mb-4 flex items-center gap-2">
             <h3 className="text-sm tracking-wide text-neutral-500 dark:text-neutral-400">
@@ -312,7 +337,7 @@ const ProjectContent = ({ project }: { project: ProjectProps }) => {
           </div>
           <Separator className="my-4" />
           <div className="space-y-3">
-            {projectData.dataEngineeringWork.map((work, index) => (
+            {projectData.dataEngineeringWork.map((work: string, index: number) => (
               <div
                 key={index}
                 className="bg-[#F5F5F7] flex items-start gap-3 rounded-xl p-4 dark:bg-neutral-800"
@@ -326,7 +351,7 @@ const ProjectContent = ({ project }: { project: ProjectProps }) => {
       )}
 
       {/* Analytics Work */}
-      {projectData.analyticsWork && projectData.analyticsWork.length > 0 && (
+      {'analyticsWork' in projectData && projectData.analyticsWork && projectData.analyticsWork.length > 0 && (
         <div className="space-y-6">
           <div className="px-6 mb-4 flex items-center gap-2">
             <h3 className="text-sm tracking-wide text-neutral-500 dark:text-neutral-400">
@@ -335,7 +360,7 @@ const ProjectContent = ({ project }: { project: ProjectProps }) => {
           </div>
           <Separator className="my-4" />
           <div className="space-y-3">
-            {projectData.analyticsWork.map((work, index) => (
+            {projectData.analyticsWork.map((work: string, index: number) => (
               <div
                 key={index}
                 className="bg-[#F5F5F7] flex items-start gap-3 rounded-xl p-4 dark:bg-neutral-800"
@@ -350,6 +375,55 @@ const ProjectContent = ({ project }: { project: ProjectProps }) => {
     </div>
   );
 };
+
+// Personal projects content array - showcasing side projects and passion work
+const PERSONAL_PROJECT_CONTENT = [
+  {
+    title: 'Realtime Ecommerce Analytics',
+    description:
+      'A complete end-to-end real-time analytics pipeline for e-commerce data, enabling organizations to monitor and analyze customer behavior as it happens. Built with modern streaming technologies, this platform processes events in real-time and provides actionable insights through interactive dashboards.',
+    techStack: [
+      'Apache Kafka',
+      'ksqlDB',
+      'Avro Schemas',
+      'Confluent Schema Registry',
+      'Kafka Connect',
+      'PostgreSQL',
+      'Grafana',
+      'Docker',
+      'Python'
+    ],
+    date: '2024',
+    links: [
+      {
+        name: 'GitHub Repository',
+        url: 'https://github.com/chigili/realtime-ecommerce-analytics',
+      },
+      {
+        name: 'Architecture Diagram',
+        url: 'https://github.com/chigili/realtime-ecommerce-analytics/blob/main/docs/architecture.md',
+      },
+    ],
+    keyFeatures: [
+      'Real-time event streaming with Apache Kafka for high-throughput data ingestion on distributed messaging backbone',
+      'Stream processing using ksqlDB with Avro schemas for type-safe transformations and real-time SQL on streams',
+      'Automated end-to-end data pipeline from event generation to visualization with zero manual intervention',
+      'Three comprehensive Grafana dashboards: Session Overview, Real-Time Activity, and Product Analytics',
+      'Schema management with Confluent Schema Registry ensuring data consistency and backward compatibility',
+      'JDBC Sink connector for seamless PostgreSQL integration with automatic data synchronization',
+      'Docker-based deployment with Docker Compose for easy setup and horizontal scalability',
+      'Event schemas include event_id, event_type, session_id, user_id, user_segment, product details, and cart information',
+      'Stateful stream processing with RocksDB for handling complex aggregations and windowing operations',
+      'Optimized storage with PostgreSQL indexing for fast analytical queries and Grafana query result caching'
+    ],
+    analyticsWork: [
+      'Session Overview Dashboard: Tracks user behavior patterns, conversion rates, and customer segments',
+      'Real-Time Activity Dashboard: Displays live event metrics and system health',
+      'Product Analytics Dashboard: Shows revenue trends, average order value, and cart abandonment rates',
+      'Custom metrics for monitoring data pipeline performance and data quality',
+    ],
+  },
+];
 
 // Main data export with game projects
 export const data = [
@@ -388,5 +462,15 @@ export const data = [
     title: 'Call of Duty Online',
     src: '/games/COD_online_cover.webp',
     content: <ProjectContent project={{ title: 'Call of Duty Online' }} />,
+  },
+];
+
+// Personal projects data export
+export const personalProjectsData = [
+  {
+    category: 'Personal Project',
+    title: 'Realtime Ecommerce Analytics',
+    src: '/projects/realtime-ecommerce-analytics.jpg',
+    content: <ProjectContent project={{ title: 'Realtime Ecommerce Analytics' }} />,
   },
 ];

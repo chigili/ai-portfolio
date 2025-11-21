@@ -278,9 +278,9 @@ export const Card = ({
           <div>
             <motion.div
               layoutId={layout ? `category-${card.category}` : undefined}
-              className="inline-flex items-center px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm border border-white/30"
+              className="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/30"
             >
-              <span className="text-xs font-medium text-white uppercase tracking-wider">
+              <span className="text-xs font-medium text-white uppercase tracking-wider text-center">
                 {card.category}
               </span>
             </motion.div>
